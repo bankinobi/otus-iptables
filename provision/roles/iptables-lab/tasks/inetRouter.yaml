@@ -1,0 +1,37 @@
+---
+- name: Start and enable iptables service
+  service:
+    name: iptables
+    state: started
+    enabled: true
+
+- name: Copy iptables.rules file
+  copy:
+    src: files/iptables.rules
+    dest: /tmp/iptables.rules
+
+- name: Enable masquerade for internal net
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    destination: "!192.168.0.0/16"
+    out_interface: eth0
+    jump: MASQUERADE
+
+- name: Create static route to internal network
+  shell: "ip route add 192.168.0.0/16 via 192.168.255.2"
+  ignore_errors: yes
+
+- name: Apply and save iptables rules
+  shell: "iptables-restore < /tmp/iptables.rules && service iptables save"
+
+- name: Enable password authentication with ssh
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication no'
+    line: 'PasswordAuthentication yes'
+
+- name: Restart sshd service
+  service:
+    name: sshd
+    state: restarted

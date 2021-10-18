@@ -1,0 +1,12 @@
+---
+- name: Copy port knocking script
+  copy:
+    src: files/knock.sh
+    dest: /home/vagrant/knock.sh
+    mode: +x
+    owner: vagrant
+
+- name: Create static routes to centralServer network
+  shell: "ip route add {{ item.dest }} via {{ item.via }}"
+  ignore_errors: yes
+  loop: "{{ routes }}"

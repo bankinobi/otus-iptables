@@ -1,0 +1,55 @@
+---
+- name: Provision inetRouter
+  hosts: inetRouter
+  become: yes
+
+  vars:
+    packages:
+      - iptables
+      - iptables-services
+
+  roles:
+    - iptables-lab
+
+- name: Provision inetRouter2
+  hosts: inetRouter2
+  become: yes
+
+  vars:
+    sysctl_params:
+      net.ipv4.ip_forward: "1"
+      net.ipv4.conf.all.forwarding: "1"
+    packages:
+      - iptables
+      - iptables-services
+
+  roles:
+    - iptables-lab
+
+- name: Provision CentralRouter
+  hosts: centralRouter
+  become: yes
+
+  vars:
+    sysctl_params:
+      net.ipv4.ip_forward: "1"
+      net.ipv4.conf.all.forwarding: "1"
+    packages:
+      - nmap
+    routes:
+      - dest: "192.168.0.0/30"
+        via: "192.168.0.1"
+  
+  roles:
+    - iptables-lab
+
+- name: Provision CentralServer
+  hosts: centralServer
+  become: yes
+
+  vars:
+    packages:
+      - epel-release
+
+  roles:
+    - iptables-lab
